@@ -748,7 +748,7 @@ int main(void)
 				if(m_drdy) {
 						m_drdy = false;
 						get_bvm_24_full(&eeg24, &eeg24_2, &eeg24_3, &eeg24_4);
-						ble_bms_update_24(&m_bms, &eeg24 ,&eeg24_2);
+						ble_bms_update_24(&m_bms, &eeg24, &eeg24_2, &eeg24_3, &eeg24_4);
 				}
 				#endif //(defined(ADS1291) || defined(ADS1292) || defined(ADS1292R))
 				power_manage();

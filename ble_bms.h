@@ -138,7 +138,7 @@ bool ble_bms_bvm_buffer_is_full(ble_bms_t * p_bms);
 */
 //void ble_bms_update (ble_bms_t *p_bms, int16_t *body_voltage);
 
-void ble_bms_update_24 (ble_bms_t *p_bms, int32_t *eeg1, int32_t *eeg2);
+void ble_bms_update_24 (ble_bms_t *p_bms, int32_t *eeg1, int32_t *eeg2, int32_t *eeg3, int32_t *eeg4);
 
 
 
@@ -148,6 +148,8 @@ uint32_t ble_bms_send_24_ch1 (ble_bms_t *p_bms);
 uint32_t ble_bms_send_24_ch2 (ble_bms_t *p_bms);
 
 uint32_t ble_bms_send_24_ch3 (ble_bms_t *p_bms);
+
+uint32_t ble_bms_send_24_ch4 (ble_bms_t *p_bms);
 
 #endif // BLE_BMS_H__
 

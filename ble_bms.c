@@ -113,8 +113,32 @@ static uint8_t bvm_encode_24(ble_bms_t * p_bms, uint8_t * p_encoded_buffer, int 
 				p_bms->eeg_ch2_count -= i;
 				break;
 			case 3:
+				for (i = 0; i < p_bms->eeg_ch3_count; i++) {			
+						if (len + sizeof(uint16_t)+sizeof(uint8_t) > MAX_BVM_LENGTH) {
+								// Not all stored voltage values can fit into the packet, so
+								// move the remaining values to the start of the buffer.
+								memmove(&p_bms->eeg_ch3_buffer[0],
+												&p_bms->eeg_ch3_buffer[i],
+												(p_bms->eeg_ch3_count - i) * sizeof(uint32_t));
+								break;
+						}
+						len += uint24_encode(p_bms->eeg_ch3_buffer[i], &p_encoded_buffer[len]); //len+=3; 
+				}
+				p_bms->eeg_ch3_count -= i;
 				break;
 			case 4:
+				for (i = 0; i < p_bms->eeg_ch4_count; i++) {			
+						if (len + sizeof(uint16_t)+sizeof(uint8_t) > MAX_BVM_LENGTH) {
+								// Not all stored voltage values can fit into the packet, so
+								// move the remaining values to the start of the buffer.
+								memmove(&p_bms->eeg_ch4_buffer[0],
+												&p_bms->eeg_ch4_buffer[i],
+												(p_bms->eeg_ch4_count - i) * sizeof(uint32_t));
+								break;
+						}
+						len += uint24_encode(p_bms->eeg_ch4_buffer[i], &p_encoded_buffer[len]); //len+=3; 
+				}
+				p_bms->eeg_ch4_count -= i;
 				break;
 			default:
 				break;
@@ -341,7 +365,8 @@ void ble_ecg_service_init(ble_bms_t *p_bms) {
 #if (defined(ADS1291) || defined(ADS1292) || defined(ADS1292R))
 /**@Update adds single int16_t voltage value: */
 
-void ble_bms_update_24(ble_bms_t *p_bms, int32_t *eeg, int32_t *eeg2) {
+void ble_bms_update_24(ble_bms_t *p_bms, int32_t *eeg, int32_t *eeg2, int32_t *eeg3, int32_t *eeg4) {
+		// CH1
 		ble_gatts_value_t gatts_value;
 		// Initialize value struct.
 		memset(&gatts_value, 0, sizeof(gatts_value));
@@ -353,24 +378,49 @@ void ble_bms_update_24(ble_bms_t *p_bms, int32_t *eeg, int32_t *eeg2) {
 		if(p_bms->bvm_count == BLE_BMS_MAX_BUFFERED_MEASUREMENTS) {
 				ble_bms_send_24_ch1(p_bms);
 		}
-		ble_gatts_value_t gatts_value2;
-		// Initialize value struct.
-		memset(&gatts_value2, 0, sizeof(gatts_value2));
-		gatts_value2.len     = sizeof(uint16_t) + sizeof(uint8_t);
-		gatts_value2.offset  = 0;
-		gatts_value2.p_value = (uint8_t*)eeg2;
+		// CH2
+		ble_gatts_value_t gatts_value_ch2;
+		memset(&gatts_value_ch2, 0, sizeof(gatts_value_ch2));
+		gatts_value_ch2.len     = sizeof(uint16_t) + sizeof(uint8_t);
+		gatts_value_ch2.offset  = 0;
+		gatts_value_ch2.p_value = (uint8_t*)eeg2;
 		
 		p_bms->eeg_ch2_buffer[p_bms->eeg_ch2_count++] = *eeg2;
 		if(p_bms->eeg_ch2_count == BLE_BMS_MAX_BUFFERED_MEASUREMENTS) {
 				ble_bms_send_24_ch2(p_bms);
 		}
-		NRF_LOG_PRINTF("Count: %d \r\n",p_bms->eeg_ch2_count);
+		//Ch3
+		ble_gatts_value_t gatts_value_ch3;
+		memset(&gatts_value_ch3, 0, sizeof(gatts_value_ch3));
+		gatts_value_ch3.len     = sizeof(uint16_t) + sizeof(uint8_t);
+		gatts_value_ch3.offset  = 0;
+		gatts_value_ch3.p_value = (uint8_t*)eeg3;
+		
+		
+		p_bms->eeg_ch3_buffer[p_bms->eeg_ch3_count++] = *eeg3;
+		if(p_bms->eeg_ch3_count == BLE_BMS_MAX_BUFFERED_MEASUREMENTS) {
+				ble_bms_send_24_ch3(p_bms);
+		}
+		
+		//Ch4
+		ble_gatts_value_t gatts_value_ch4;
+		memset(&gatts_value_ch4, 0, sizeof(gatts_value_ch4));
+		gatts_value_ch4.len     = sizeof(uint16_t) + sizeof(uint8_t);
+		gatts_value_ch4.offset  = 0;
+		gatts_value_ch4.p_value = (uint8_t*)eeg4;
+		
+		p_bms->eeg_ch4_buffer[p_bms->eeg_ch4_count++] = *eeg4;
+		if(p_bms->eeg_ch4_count == BLE_BMS_MAX_BUFFERED_MEASUREMENTS) {
+				ble_bms_send_24_ch4(p_bms);
+		}
+		
+		
 		//Initialize gatts buffer for each channel
 		
 		sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->bvm_handles.value_handle, &gatts_value);
-		sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->eeg_ch2_handles.value_handle, &gatts_value2);
-		//sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->eeg_ch3_handles.value_handle, &gatts_value);
-		//sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->eeg_ch4_handles.value_handle, &gatts_value);
+		sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->eeg_ch2_handles.value_handle, &gatts_value_ch2);
+		sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->eeg_ch3_handles.value_handle, &gatts_value_ch3);
+		sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->eeg_ch4_handles.value_handle, &gatts_value_ch4);
 }
 
 uint32_t ble_bms_send_24_ch1 (ble_bms_t *p_bms) {
@@ -413,5 +463,44 @@ uint32_t ble_bms_send_24_ch2 (ble_bms_t *p_bms) {
 	return err_code;
 }
 
+uint32_t ble_bms_send_24_ch3 (ble_bms_t *p_bms) {
+	uint32_t err_code;
+	if (p_bms->conn_handle != BLE_CONN_HANDLE_INVALID) {
+		uint8_t               	encoded_bvm[MAX_BVM_LENGTH];
+		uint16_t      					len;
+		uint16_t 								hvx_len;
+		ble_gatts_hvx_params_t 	hvx_params;
+		len 							= bvm_encode_24(p_bms, encoded_bvm, 3);
+		hvx_len						= len;
+		memset(&hvx_params, 0, sizeof(hvx_params));
+		hvx_params.handle = p_bms->eeg_ch3_handles.value_handle;
+		hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+		hvx_params.offset = 0;
+		hvx_params.p_len  = &hvx_len;
+		hvx_params.p_data = encoded_bvm;
+		err_code = sd_ble_gatts_hvx(p_bms->conn_handle, &hvx_params);
+	}
+	return err_code;
+}
+
+uint32_t ble_bms_send_24_ch4 (ble_bms_t *p_bms) {
+	uint32_t err_code;
+	if (p_bms->conn_handle != BLE_CONN_HANDLE_INVALID) {
+		uint8_t               	encoded_bvm[MAX_BVM_LENGTH];
+		uint16_t      					len;
+		uint16_t 								hvx_len;
+		ble_gatts_hvx_params_t 	hvx_params;
+		len 							= bvm_encode_24(p_bms, encoded_bvm, 4);
+		hvx_len						= len;
+		memset(&hvx_params, 0, sizeof(hvx_params));
+		hvx_params.handle = p_bms->eeg_ch4_handles.value_handle;
+		hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+		hvx_params.offset = 0;
+		hvx_params.p_len  = &hvx_len;
+		hvx_params.p_data = encoded_bvm;
+		err_code = sd_ble_gatts_hvx(p_bms->conn_handle, &hvx_params);
+	}
+	return err_code;
+}
 
 #endif// (defined(ADS1291) || defined(ADS1292) || defined(ADS1292R))
