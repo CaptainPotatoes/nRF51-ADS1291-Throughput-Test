@@ -28,7 +28,7 @@
 #include "ads1291-2.h"
 #include "nrf_log.h"
 
-#define MAX_BVM_LENGTH   		20																							 /**< Maximum size in bytes of a transmitted Body Voltage Measurement. */
+#define MAX_BVM_LENGTH   		30																							 /**< Maximum size in bytes of a transmitted Body Voltage Measurement. */
 
 void ble_bms_on_ble_evt(ble_bms_t * p_bms, ble_evt_t * p_ble_evt)
 {
@@ -72,6 +72,31 @@ static uint8_t bvm_encode(ble_bms_t * p_bms, uint8_t * p_encoded_buffer)
             break;
         }
         len += uint16_encode(p_bms->bvm_buffer[i], &p_encoded_buffer[len]);
+    }
+    p_bms->bvm_count -= i;
+		
+
+    return len;
+}
+
+static uint8_t bvm_encode_24(ble_bms_t * p_bms, uint8_t * p_encoded_buffer)
+{
+    uint8_t len   = 0;
+    int     i;
+
+    // Encode body voltage measurement
+    for (i = 0; i < p_bms->bvm_count; i++)
+    {			
+        if (len + sizeof(uint16_t)+sizeof(uint8_t) > MAX_BVM_LENGTH)
+        {
+            // Not all stored voltage values can fit into the packet, so
+            // move the remaining values to the start of the buffer.
+            memmove(&p_bms->bvm_buffer[0],
+                    &p_bms->bvm_buffer[i],
+                    (p_bms->bvm_count - i) * (sizeof(uint16_t) + sizeof(uint8_t) ) );
+            break;
+        }
+        len += uint24_encode(p_bms->bvm_buffer[i], &p_encoded_buffer[len]);
     }
     p_bms->bvm_count -= i;
 		
@@ -206,7 +231,7 @@ void ble_ecg_service_init(ble_bms_t *p_bms) {
 		
 }
 #if (defined(ADS1291) || defined(ADS1292) || defined(ADS1292R))
-/**@Update adds single int16_t voltage value: */
+/**@Update adds single int16_t voltage value: 
 void ble_bms_update (ble_bms_t *p_bms, body_voltage_t *body_voltage) {
 		ble_gatts_value_t gatts_value;
 		// Initialize value struct.
@@ -214,12 +239,12 @@ void ble_bms_update (ble_bms_t *p_bms, body_voltage_t *body_voltage) {
 		gatts_value.len     = sizeof(uint16_t);
 		gatts_value.offset  = 0;
 		gatts_value.p_value = (uint8_t*)body_voltage;
-		/*if (p_bms->bvm_count == BLE_BMS_MAX_BUFFERED_MEASUREMENTS)
-    {// The voltage measurement buffer is full, delete the oldest value
-        memmove(&p_bms->bvm_buffer[0],&p_bms->bvm_buffer[1],
-				(BLE_BMS_MAX_BUFFERED_MEASUREMENTS - 1) * sizeof(uint16_t));
-        p_bms->bvm_count--;
-    }*/
+		//if (p_bms->bvm_count == BLE_BMS_MAX_BUFFERED_MEASUREMENTS)
+    //{// The voltage measurement buffer is full, delete the oldest value
+    //   memmove(&p_bms->bvm_buffer[0],&p_bms->bvm_buffer[1],
+		//		(BLE_BMS_MAX_BUFFERED_MEASUREMENTS - 1) * sizeof(uint16_t));
+    //    p_bms->bvm_count--;
+    //}
     // Add new value
 		p_bms->bvm_buffer[p_bms->bvm_count++] = *body_voltage;
 		
@@ -229,8 +254,45 @@ void ble_bms_update (ble_bms_t *p_bms, body_voltage_t *body_voltage) {
 		//NRF_LOG_PRINTF("bvm_count: %d \r\n", p_bms->bvm_count);
 		// Update database.
 		sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->bvm_handles.value_handle, &gatts_value);
+}*/
+
+void ble_bms_update_24(ble_bms_t *p_bms, eeg24_t *eeg) {
+		ble_gatts_value_t gatts_value;
+		// Initialize value struct.
+		memset(&gatts_value, 0, sizeof(gatts_value));
+		gatts_value.len     = sizeof(uint16_t) + sizeof(uint8_t);
+		gatts_value.offset  = 0;
+		gatts_value.p_value = (uint8_t*)eeg;
+		// Add new value
+		p_bms->bvm_buffer[p_bms->bvm_count++] = *eeg;
+		
+		if(p_bms->bvm_count == BLE_BMS_MAX_BUFFERED_MEASUREMENTS) {
+				ble_bms_send_24(p_bms);
+		}
+		
+		sd_ble_gatts_value_set(p_bms->conn_handle, p_bms->bvm_handles.value_handle, &gatts_value);
 }
 
+uint32_t ble_bms_send_24 (ble_bms_t *p_bms) {
+	uint32_t err_code;
+	if (p_bms->conn_handle != BLE_CONN_HANDLE_INVALID) {
+		uint8_t               	encoded_bvm[MAX_BVM_LENGTH];
+		uint16_t      					len;
+		uint16_t 								hvx_len;
+		ble_gatts_hvx_params_t 	hvx_params;
+		len 							= bvm_encode_24(p_bms, encoded_bvm);
+		hvx_len						= len;
+		memset(&hvx_params, 0, sizeof(hvx_params));
+		hvx_params.handle = p_bms->bvm_handles.value_handle;
+		hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+		hvx_params.offset = 0;
+		hvx_params.p_len  = &hvx_len;
+		hvx_params.p_data = encoded_bvm;
+		err_code = sd_ble_gatts_hvx(p_bms->conn_handle, &hvx_params);
+	}
+	return err_code;
+}
+/*
 uint32_t ble_bms_send (ble_bms_t *p_bms) {
 	uint32_t 								err_code;
 	if (p_bms->conn_handle != BLE_CONN_HANDLE_INVALID) {
@@ -252,5 +314,6 @@ uint32_t ble_bms_send (ble_bms_t *p_bms) {
 	return err_code;
 	//Flush Data?
 }
+*/
 
 #endif// (defined(ADS1291) || defined(ADS1292) || defined(ADS1292R))

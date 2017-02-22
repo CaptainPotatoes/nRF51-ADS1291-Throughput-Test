@@ -63,8 +63,9 @@ typedef struct
     uint16_t											service_handle; 				/**< Handle of ble Service (as provided by the BLE stack). */
 		ble_gatts_char_handles_t			bvm_handles;						/**< Handles related to the our body V measure characteristic. */
 		ble_gatts_char_handles_t			data_rate_handles;
-		uint16_t										 	bvm_buffer[BLE_BMS_MAX_BUFFERED_MEASUREMENTS];
-		uint8_t											 	bvm_count;	
+		//uint16_t										 	bvm_buffer[BLE_BMS_MAX_BUFFERED_MEASUREMENTS];
+		uint32_t										 	bvm_buffer[BLE_BMS_MAX_BUFFERED_MEASUREMENTS];
+		uint8_t											 	bvm_count;
 } ble_bms_t;
 
 /**@brief Function for initiating our new service.
@@ -120,9 +121,14 @@ bool ble_bms_bvm_buffer_is_full(ble_bms_t * p_bms);
 /**@brief function for updating/notifying BLE of new value.
 *
 */
-void ble_bms_update (ble_bms_t *p_bms, int16_t *body_voltage);
+//void ble_bms_update (ble_bms_t *p_bms, int16_t *body_voltage);
 
-uint32_t ble_bms_send (ble_bms_t *p_bms);
+void ble_bms_update_24 (ble_bms_t *p_bms, int32_t *body_voltage);
+
+
+//uint32_t ble_bms_send (ble_bms_t *p_bms);
+
+uint32_t ble_bms_send_24 (ble_bms_t *p_bms);
 
 //void ble_bms_send (ble_bms_t *p_bms);
 #endif // BLE_BMS_H__

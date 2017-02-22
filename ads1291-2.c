@@ -335,7 +335,7 @@ void get_bvm_sample (body_voltage_t *body_voltage) {
 		//0,1,2 = 24-bit STAT
 		//3,4,5 = 24-bit CH1 DATA
 		//6,7,8 = 24-bit CH2 DATA
-}*/
+}
 void get_bvm_sample (body_voltage_t *body_voltage) {
 		uint8_t tx_rx_data[9] = {0x00, 0x00, 0x00,
 														0x00, 0x00, 0x00,
@@ -343,7 +343,7 @@ void get_bvm_sample (body_voltage_t *body_voltage) {
 		
 		nrf_drv_spi_transfer(&spi, tx_rx_data, 9, tx_rx_data, 9);
 		uint8_t cnt = 0;
-		/**/do { 
+		do { 
 			cnt++;
 			if(tx_rx_data[6]==0xC0) {
 				*body_voltage = ((tx_rx_data[3] << 8) | tx_rx_data[4]);
@@ -352,22 +352,46 @@ void get_bvm_sample (body_voltage_t *body_voltage) {
 			}
 			nrf_delay_us(1);
 		} while (cnt<255);
-		/*do {
+}*/
+
+void get_bvm_24 (eeg24_t *eeg, eeg24_t *eeg2) {
+		uint8_t tx_rx_data[9] = {0x00, 0x00, 0x00,
+														0x00, 0x00, 0x00,
+														0x00, 0x00, 0x00};
+		nrf_drv_spi_transfer(&spi, tx_rx_data, 9, tx_rx_data, 9);
+		uint8_t cnt = 0;
+		do { 
 			cnt++;
-			*body_voltage = ((tx_rx_data[3] << 8) | tx_rx_data[4]);
-			//NRF_LOG_PRINTF("[cnt] = %d, bv = %d\r\n",cnt ,*body_voltage);
-			//}
-		} while (cnt!=5);*/
-}
-
-
+			if(tx_rx_data[6]==0xC0) {
+				*eeg = ((tx_rx_data[3] << 16) | (tx_rx_data[4] << 8) | (tx_rx_data[5]) );
+				//NRF_LOG_PRINTF("[cnt] = %d, bv = %d\r\n",cnt ,*body_voltage);
+				*eeg2 = ((tx_rx_data[6] << 16) | (tx_rx_data[7] << 8) | (tx_rx_data[8]) );
+				//NRF_LOG_PRINTF("V2L: 0x%x \r\n", ch2);
+				break;
+			}
+			nrf_delay_us(1);
+		} while (cnt<255);
+}	
 /*
-void get_bvm_sample (body_voltage_t *body_voltage) {
-		uint8_t tx_rx_data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
-		nrf_drv_spi_transfer(&spi, tx_rx_data, 5, tx_rx_data, 5);
-		nrf_delay_us(24);
-		//24 Probably works best so far.
-		//47 works pretty great.
-		*body_voltage = ((tx_rx_data[3] << 8) | tx_rx_data[4]);
+void get_bvm_24_full (eeg24_t *eeg1, eeg24_t *eeg2, eeg24_t *eeg3, eeg24_t *eeg4) {
+		uint8_t tx_rx_data[9] = {0x00, 0x00, 0x00,
+														0x00, 0x00, 0x00,
+														0x00, 0x00, 0x00};
+		nrf_drv_spi_transfer(&spi, tx_rx_data, 9, tx_rx_data, 9);
+		uint8_t cnt = 0;
+		do { 
+			cnt++;
+			if(tx_rx_data[6]==0xC0) {
+				*eeg1 = ((tx_rx_data[3] << 16) | (tx_rx_data[4] << 8) | (tx_rx_data[5]) );
+				*eeg2 = ((tx_rx_data[6] << 16) | (tx_rx_data[7] << 8) | (tx_rx_data[8]) );
+				*eeg3
+				*eeg4
+				NRF_LOG_PRINTF(" \r\n", ch2);
+				break;
+			}
+			nrf_delay_us(1);
+		} while (cnt<255);
+		
 }
-{{*/
+*/
+
