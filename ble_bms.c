@@ -28,7 +28,7 @@
 #include "ads1291-2.h"
 #include "nrf_log.h"
 
-#define MAX_BVM_LENGTH   		20	//20*3bytes																						 /**< Maximum size in bytes of a transmitted Body Voltage Measurement. */
+#define MAX_BVM_LENGTH   		18	//20*3bytes																						 /**< Maximum size in bytes of a transmitted Body Voltage Measurement. */
 
 void ble_bms_on_ble_evt(ble_bms_t * p_bms, ble_evt_t * p_ble_evt)
 {

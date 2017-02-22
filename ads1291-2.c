@@ -381,15 +381,7 @@ void get_bvm_24_full (eeg24_t *eeg1, eeg24_t *eeg2, eeg24_t *eeg3, eeg24_t *eeg4
 														0x00, 0x00, 0x00};
 		nrf_drv_spi_transfer(&spi, tx_rx_data, 9, tx_rx_data, 9);
 		uint8_t cnt = 0;
-		/**/do { 
-			cnt++;
-			if(tx_rx_data[6]==0xC0) {
-				
-
-				break;
-			}
-			nrf_delay_us(1);
-		} while (cnt<255);
+		nrf_delay_us(7);
 		//Make up values:
 		cnt+=4;
 		*eeg1 =  ((0x11 << 16) | (0x22 << 8) | (0x33) );
