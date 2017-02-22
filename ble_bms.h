@@ -44,15 +44,18 @@
 #define BMS_UUID_BASE {0x57, 0x80, 0xD2, 0x94, 0xA3, 0xB2, 0xFE, 0x39, 0x5F, 0x87, 0xFD, 0x35, 0x00, 0x00, 0x8B, 0x22};
 
 // Service UUID
-#define BLE_UUID_BIOPOTENTIAL_MEASUREMENT_SERVICE	0x3260
+//#define BLE_UUID_BIOPOTENTIAL_MEASUREMENT_SERVICE	0x3260
 
+	#define BLE_UUID_BIOPOTENTIAL_MEASUREMENT_SERVICE	0xEEF0
 // Characteristic UUIDs
-#define BLE_UUID_BODY_VOLTAGE_MEASUREMENT_CHAR		0x3261
-
-#define BLE_UUID_SAMPLE_RATE_CHAR									0x3262
+#define BLE_UUID_EEG_CH1_CHAR		0xEEF1
+#define BLE_UUID_EEG_CH2_CHAR		0xEEF2
+#define BLE_UUID_EEG_CH3_CHAR		0xEEF3
+#define BLE_UUID_EEG_CH4_CHAR		0xEEF4
 
 // Maximum number of body voltage measurement bytes buffered by the application
-#define BLE_BMS_MAX_BUFFERED_MEASUREMENTS					10//30
+#define BLE_BMS_MAX_BUFFERED_MEASUREMENTS					20
+//30
 
 
 /**@brief Biopotential Measurement Service init structure. This contains all options and data needed for
@@ -61,11 +64,23 @@ typedef struct
 {
     uint16_t        							conn_handle;						/**< Event handler to be called for handling events in the Biopotential Measurement Service. */
     uint16_t											service_handle; 				/**< Handle of ble Service (as provided by the BLE stack). */
+	
 		ble_gatts_char_handles_t			bvm_handles;						/**< Handles related to the our body V measure characteristic. */
-		ble_gatts_char_handles_t			data_rate_handles;
-		//uint16_t										 	bvm_buffer[BLE_BMS_MAX_BUFFERED_MEASUREMENTS];
 		uint32_t										 	bvm_buffer[BLE_BMS_MAX_BUFFERED_MEASUREMENTS];
 		uint8_t											 	bvm_count;
+		
+		ble_gatts_char_handles_t			eeg_ch2_handles;
+		uint32_t										 	eeg_ch2_buffer[BLE_BMS_MAX_BUFFERED_MEASUREMENTS];
+		uint8_t											 	eeg_ch2_count;
+	
+		ble_gatts_char_handles_t			eeg_ch3_handles;
+		uint32_t										 	eeg_ch3_buffer[BLE_BMS_MAX_BUFFERED_MEASUREMENTS];
+		uint8_t											 	eeg_ch3_count;
+	
+		ble_gatts_char_handles_t			eeg_ch4_handles;
+		uint32_t										 	eeg_ch4_buffer[BLE_BMS_MAX_BUFFERED_MEASUREMENTS];
+		uint8_t											 	eeg_ch4_count;
+	
 } ble_bms_t;
 
 /**@brief Function for initiating our new service.
@@ -123,14 +138,17 @@ bool ble_bms_bvm_buffer_is_full(ble_bms_t * p_bms);
 */
 //void ble_bms_update (ble_bms_t *p_bms, int16_t *body_voltage);
 
-void ble_bms_update_24 (ble_bms_t *p_bms, int32_t *body_voltage);
+void ble_bms_update_24 (ble_bms_t *p_bms, int32_t *eeg1, int32_t *eeg2);
 
 
-//uint32_t ble_bms_send (ble_bms_t *p_bms);
 
-uint32_t ble_bms_send_24 (ble_bms_t *p_bms);
 
-//void ble_bms_send (ble_bms_t *p_bms);
+uint32_t ble_bms_send_24_ch1 (ble_bms_t *p_bms);
+
+uint32_t ble_bms_send_24_ch2 (ble_bms_t *p_bms);
+
+uint32_t ble_bms_send_24_ch3 (ble_bms_t *p_bms);
+
 #endif // BLE_BMS_H__
 
 /** @} */

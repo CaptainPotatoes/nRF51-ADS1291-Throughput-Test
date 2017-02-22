@@ -499,7 +499,7 @@ typedef enum
 //
 // DON'T USE > 0x06
 // 
-#define ADS1291_2_REGDEFAULT_CONFIG1		0x03			///< Continuous conversion, data rate = 1000SPS
+#define ADS1291_2_REGDEFAULT_CONFIG1		0x01			///< Continuous conversion, data rate = 1000SPS
 #define ADS1291_2_REGDEFAULT_CONFIG2		0xA3			///< LOFF off, REFBUF on, VREF=2.42, CLK_EN=0, INT_TEST=1, TEST_FREQ @ 1Hz
 #define ADS1291_2_REGDEFAULT_LOFF				0x00			///< 95%/5% LOFF comparator threshold, DC lead-off at 6 nA	
 #define ADS1291_2_REGDEFAULT_CH1SET			0x60			///< Channel on, G=12, normal electrode
@@ -681,9 +681,9 @@ void ads1291_2_check_id(void);
 //void get_bvm_sample (body_voltage_t *body_voltage);
 void get_bvm_sample (body_voltage_t *body_voltage);
 
-void get_bvm_24 (eeg24_t *eeg, eeg24_t *eeg2);
+void get_bvm_24 (int32_t *eeg, int32_t *eeg2);
 
-void get_bvm_24_full (eeg24_t *eeg1, eeg24_t *eeg2, eeg24_t *eeg3, eeg24_t *eeg4);
+void get_bvm_24_full (int32_t *eeg1, int32_t *eeg2, int32_t *eeg3, int32_t *eeg4);
 //uint32_t get_bvm_sample (ble_bms_t m_bms, body_voltage_t *body_voltage);
 void set_sampling_rate (uint8_t sampling_rate);
 

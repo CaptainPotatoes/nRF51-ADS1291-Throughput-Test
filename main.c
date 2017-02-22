@@ -723,10 +723,10 @@ int main(void)
 		// Put AFE to sleep while we're not connected
 		ads1291_2_standby();
 		//body_voltage_t body_voltage;
-		eeg24_t eeg24;
-		eeg24_t eeg24_2;
-		eeg24_t eeg24_3;
-		eeg24_t eeg24_4;
+		int32_t eeg24;
+		int32_t eeg24_2;
+		int32_t eeg24_3;
+		int32_t eeg24_4;
 		#endif //(defined(ADS1291) || defined(ADS1292) || defined(ADS1292R))
 					
     // Start execution.
@@ -747,12 +747,8 @@ int main(void)
 				/**@Data Acq. */
 				if(m_drdy) {
 						m_drdy = false;
-						get_bvm_24(&eeg24, &eeg24_2);
-						NRF_LOG_PRINTF("VAL[1] 0x%x \r\n",eeg24);
-						NRF_LOG_PRINTF("VAL[2] 0x%x \r\n",eeg24_2);
-						ble_bms_update_24(&m_bms, &eeg24_2);
-						//get_bvm_sample(&body_voltage);
-						//ble_bms_update(&m_bms, &body_voltage);
+						get_bvm_24_full(&eeg24, &eeg24_2, &eeg24_3, &eeg24_4);
+						ble_bms_update_24(&m_bms, &eeg24 ,&eeg24_2);
 				}
 				#endif //(defined(ADS1291) || defined(ADS1292) || defined(ADS1292R))
 				power_manage();
