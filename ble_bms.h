@@ -149,5 +149,3 @@ uint32_t ble_bms_send_24_ch3 (ble_bms_t *p_bms);
 uint32_t ble_bms_send_24_ch4 (ble_bms_t *p_bms);
 
 #endif // BLE_BMS_H__
-
-/** @} */

@@ -82,7 +82,7 @@ void ads_spi_init(void) {
 		spi_config.bit_order						= NRF_DRV_SPI_BIT_ORDER_MSB_FIRST;
 		//SCLK = 1MHz is right speed because fCLK = (1/2)*SCLK, and fMOD = fCLK/4, and fMOD MUST BE 128kHz. Do the math.
 		spi_config.frequency						=	NRF_DRV_SPI_FREQ_1M; 	
-		//spi_config.irq_priority					= APP_IRQ_PRIORITY_LOW;
+		//spi_config.frequency						= NRF_DRV_SPI_FREQ_125K;
 		spi_config.irq_priority					= APP_IRQ_PRIORITY_HIGHEST;
 		spi_config.mode									= NRF_DRV_SPI_MODE_1; //CPOL = 0 (Active High); CPHA = TRAILING (1)
 		spi_config.miso_pin 						= SPIM0_MISO_PIN;
@@ -381,11 +381,12 @@ void get_bvm_24_full (eeg24_t *eeg1, eeg24_t *eeg2, eeg24_t *eeg3, eeg24_t *eeg4
 														0x00, 0x00, 0x00};
 		nrf_drv_spi_transfer(&spi, tx_rx_data, 9, tx_rx_data, 9);
 		uint8_t cnt = 0;
-		nrf_delay_us(7);
+		nrf_delay_us(50);
+		*eeg1 =  ((tx_rx_data[3] << 16) | (tx_rx_data[4] << 8) | (tx_rx_data[5]) );						
 		//Make up values:
 		cnt+=4;
-		*eeg1 =  ((0x11 << 16) | (0x22 << 8) | (0x33) );
-		*eeg2 = ( (0x44 << 16) | (0x55 << 8) | (0x66) );
+		//*eeg1 =  ((0x11 << 16) | (0x22 << 8) | (0x33) );
+		//*eeg2 = ( (0x44 << 16) | (0x55 << 8) | (0x66) );
 		*eeg3 = ( (0x77 << 16) | (0x88 << 8) | (0x99) );
 		*eeg4 = ( (0xAA << 16) | (0xBB << 8) | (0xCC) );
 }
