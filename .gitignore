@@ -162,3 +162,4 @@ custom_board/s130/iar/ble_app_template_s130_pca10028.ewp
 hex/ble_app_template_s130_pca10028.hex
 hex/ble_app_template_s132_pca10036.hex
 hex/ble_app_template_s132_pca10040.hex
+custom_board/s130/arm5_no_packs/Packs_nrf51422_xxac_s130.htm

@@ -143,9 +143,6 @@ static uint8_t bvm_encode_24(ble_bms_t * p_bms, uint8_t * p_encoded_buffer, int 
 			default:
 				break;
 		}
-			
-
-    
     return len;
 }
 
